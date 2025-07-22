@@ -9,10 +9,14 @@ ENV TAILSCALE_VERSION "latest"
 ENV TAILSCALE_HOSTNAME "render-exit-node"
 ENV TAILSCALE_ADDITIONAL_ARGS ""
 
-# Install Tailscale, ca-certificates, iptables, ip6tables, and busybox
-RUN wget https://pkgs.tailscale.com/stable/tailscale_${TAILSCALE_VERSION}_amd64.tgz && \
+# Install Tailscale, ca-certificates, iptables, ip6tables,
+# and crucially, busybox-extras (which includes httpd).
+# Ensure busybox-extras is definitively installed.
+RUN apk update && \
+    apk add --no-cache ca-certificates iptables ip6tables busybox-extras && \
+    wget https://pkgs.tailscale.com/stable/tailscale_${TAILSCALE_VERSION}_amd64.tgz && \
     tar xzf tailscale_${TAILSCALE_VERSION}_amd64.tgz --strip-components=1 && \
-    apk update && apk add ca-certificates iptables ip6tables busybox-extras && rm -rf /var/cache/apk/*
+    rm -rf /var/cache/apk/*
 
 RUN mkdir -p /var/run/tailscale /var/cache/tailscale /var/lib/tailscale
 
